@@ -2,15 +2,22 @@
 
 const SHA256 = require('crypto-js/sha256')
 
+class Transaction{
+    constructor(fromAdress, toAdress, amount){
+        this.fromAdress = fromAdress;
+        this.toAdress = toAdress;
+        this.amount = amount;
+    }
+}
+
 class Block {
     // index : where is block on chain
     // timestamp : when block is created
     // data : any data you want to assign to block how much money transfered who was sender and receiver etc
     // string that contains hash of block before current one 
-    constructor(index, timestamp, data, previousHash = ''){
-        this.index = index;
+    constructor(timestamp, transactions, previousHash = ''){
         this.timestamp = timestamp;
-        this.data = data;
+        this.transactions = transactions;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0;
@@ -32,20 +39,32 @@ class Block {
 class Blockchain{
     constructor(){
         this.chain = [this.createGenesisBlock()];
-        this.difficulty = 5;
+        this.difficulty = 2;
+        this.pendingTransactions = [];
+        this.miningReward = 100;
     }
     createGenesisBlock(){
-        return new Block(0, "26/07/2023", "Genesis Block", "0");
+        return new Block("26/07/2023", "Genesis Block", "0");
     }
 
     getLatestBlock(){
         return this.chain[this.chain.length - 1];
     }
 
-    addBlock(newBlock){
-        newBlock.previousHash = this.getLatestBlock().hash;
-        newBlock.mineBlock(this.difficulty);
-        this.chain.push(newBlock);
+    minePendingTransactions(miningRewardAdress){
+        let block = new Block(Data.now(), this.pendingTransactions());
+        block.mineBlock(this.difficulty);
+
+        console.log("Block Mined");
+        this.chain.push(block);
+
+        this.pendingTransactions = [
+            new Transaction(null, this.miningReward, 100)
+        ];
+    }
+
+    createTransaction(transaction){
+        this.pendingTransactions.push(transaction);
     }
 
     isChainValid(){
@@ -72,17 +91,4 @@ class Blockchain{
 
 let oguzCoin = new Blockchain();
 
-console.log("mining block 1 ...");
-
-oguzCoin.addBlock(new Block(1, "27/07/2023", { info: "test1"}));
-
-console.log("mining block 2 ...");
-
-oguzCoin.addBlock(new Block(2, "30/07/2023", { info: "test2"}));
-
-// oguzCoin : object to be transformed into JSONstring
-// null : optional
-// 4 : number of spaces between console.log
-//console.log("Is Blockchain Valid ? : " + oguzCoin.isChainValid());
-//console.log(JSON.stringify(oguzCoin, null, 4));
 
