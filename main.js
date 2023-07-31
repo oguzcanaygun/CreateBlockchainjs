@@ -22,8 +22,8 @@ class Block {
         this.hash = this.calculateHash();
         this.nonce = 0;
     }
-    calculateHash(){
-        return SHA256(this.index + this.timestamp + JSON.stringify(this.data) + this.previousHash + this.nonce).toString();
+    calculateHash() {
+        return SHA256(this.timestamp + JSON.stringify(this.transactions) + this.previousHash + this.nonce).toString();
     }
 
     mineBlock(difficulty){
@@ -51,21 +51,39 @@ class Blockchain{
         return this.chain[this.chain.length - 1];
     }
 
-    minePendingTransactions(miningRewardAdress){
-        let block = new Block(Data.now(), this.pendingTransactions());
+    minePendingTransactions(miningRewardAddress) {
+        let block = new Block(Date.now(), this.pendingTransactions);
         block.mineBlock(this.difficulty);
-
+    
         console.log("Block Mined");
         this.chain.push(block);
-
+    
         this.pendingTransactions = [
-            new Transaction(null, this.miningReward, 100)
+          new Transaction(null, miningRewardAddress, this.miningReward),
         ];
-    }
+      }
 
     createTransaction(transaction){
         this.pendingTransactions.push(transaction);
     }
+
+    getBalanceOfAddress(address) {
+        let balance = 0;
+    
+        for (const block of this.chain) {
+          for (const trans of block.transactions) {
+            if (trans.fromAdress === address) { 
+              balance -= trans.amount;
+            }
+    
+            if (trans.toAdress === address) { 
+              balance += trans.amount;
+            }
+          }
+        }
+    
+        return balance;
+      }
 
     isChainValid(){
         for (let i = 1; i < this.chain.length; i++)
@@ -91,4 +109,14 @@ class Blockchain{
 
 let oguzCoin = new Blockchain();
 
+oguzCoin.createTransaction(new Transaction("adress1", "adress2", 100));
+oguzCoin.createTransaction(new Transaction("adress2", "adress1", 50));
 
+console.log("\n Starting the miner");
+oguzCoin.minePendingTransactions("oguzcan-adress");
+
+console.log("\n Balance of oguzcan is " + oguzCoin.getBalanceOfAddress("oguzcan-adress"));
+
+console.log("\n Starting the miner 2");
+oguzCoin.minePendingTransactions("oguzcan-adress");
+console.log("\n Balance of oguzcan is " + oguzCoin.getBalanceOfAddress("oguzcan-adress"));
